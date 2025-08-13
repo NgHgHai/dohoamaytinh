@@ -1,4 +1,4 @@
-package Shape;
+package vn.edu.hcmuaf;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.glu.GLU;
@@ -26,7 +26,7 @@ public class Shape extends GLJPanel implements GLEventListener, KeyListener {
     private final float GRAVITY = -0.02f; // Gia tốc trọng lực
     private final float JUMP_VELOCITY = 0.5f; // Vận tốc nhảy ban đầu cho phím cách
     private final float SMALL_JUMP_VELOCITY = 0.3f; // Vận tốc nhảy nhẹ cho phím số
-    private final float SMALL_MOVE_DISTANCE = 0.2f; // Khoảng cách di chuyển nhẹ
+    private final float SMALL_MOVE_DISTANCE = 0.5f; // Khoảng cách di chuyển nhẹ
     private boolean isOnGround = true; // Trạng thái chạm đất
 
     public Shape() {
