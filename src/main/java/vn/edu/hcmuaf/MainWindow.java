@@ -28,8 +28,6 @@ public class MainWindow extends JFrame {
         controlPanel.setPreferredSize(new Dimension(200, 0));
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 
-        JButton btnZoomEarth = new JButton("Zoom Earth");
-        JButton btnZoomSun = new JButton("Zoom Sun");
         JButton stopAnimation = new JButton("Stop Animation");
         stopAnimation.addActionListener(e -> {
             if (animator.isAnimating()) {
@@ -40,9 +38,8 @@ public class MainWindow extends JFrame {
                 stopAnimation.setText("Stop Animation");
             }
         });
-        controlPanel.add(btnZoomEarth);
+
         controlPanel.add(Box.createVerticalStrut(10));
-        controlPanel.add(btnZoomSun);
         controlPanel.add(stopAnimation);
 
         add(solarPanel, BorderLayout.CENTER);

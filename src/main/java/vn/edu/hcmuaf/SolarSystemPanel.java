@@ -11,6 +11,10 @@ import java.awt.event.*;
 public class SolarSystemPanel extends GLJPanel implements GLEventListener, MouseMotionListener, MouseListener, MouseWheelListener {
 
     private float earthOrbitAngle = 0f;
+    private float venusOrbitAngle = 0f;
+    private float marsOrbitAngle = 0f;
+
+    private float satureOrbitAngle = 0f;
     private float earthRotation = 0f;
     private float sceneRotX = 20f, sceneRotY = 0f;
     private float cameraDistance = 15f;
@@ -20,13 +24,14 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
     private String hoveredPlanet = "";
     private String selectedPlanet = "";
 
-    private Texture sunTexture, earthTexture, moonTexture ,venusTexture;
+    private Texture sunTexture, earthTexture, moonTexture ,venusTexture,marsTexture,
+            mercuryTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture;
 
     private int lastMouseX, lastMouseY;
     private static final int STAR_COUNT = 500; // Số lượng sao
     private float[] starPositions = new float[STAR_COUNT * 3]; // mỗi sao 3 float x,y,z
     private int numSegments = 100; // Number of segments for approximation
-    private float venusOrbitAngle = 0f;
+
     public SolarSystemPanel(GLCapabilities caps) {
         super(caps);
         this.addGLEventListener(this);
@@ -42,15 +47,18 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
         gl.glEnable(GL2.GL_TEXTURE_2D);
         gl.glClearColor(0f, 0f, 0f, 1f);
 
-
-        earthTexture = TextureLoader.loadTexture(gl, "/textures/earth.jpg");
-        sunTexture = TextureLoader.loadTexture(gl, "/textures/sun.jpg");
-        moonTexture = TextureLoader.loadTexture(gl, "/textures/moon.jpg");
-        venusTexture = TextureLoader.loadTexture(gl, "/textures/venus.jpg");
-        if (earthTexture == null || sunTexture == null) {
-            System.err.println("Không thể tải texture");
+        try {
+            earthTexture = TextureLoader.loadTexture(gl, "/textures/earth.jpg");
+            sunTexture = TextureLoader.loadTexture(gl, "/textures/sun.jpg");
+            moonTexture = TextureLoader.loadTexture(gl, "/textures/moon.jpg");
+            venusTexture = TextureLoader.loadTexture(gl, "/textures/venus.jpg");
+            marsTexture = TextureLoader.loadTexture(gl, "/textures/mars.jpg");
+            saturnTexture = TextureLoader.loadTexture(gl, "/textures/saturn.jpg");
+        }catch (Exception e) {
+            System.out.println("Error loading textures: " + e.getMessage());
         }
         generateStarPositions();
+        generateSaturnRing(2f, 3000); // Tạo vành đai Sao Thổ
     }
 
     @Override
@@ -98,10 +106,19 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
 
         // Sao Kim
         drawVenus(gl);
+
+        // Sao Hỏa
+        drawMars(gl);
+
+        // Sao Thổ
+        drawSature(gl);
+
         // Update animation
         earthOrbitAngle += 0.01f;
         earthRotation += 0.2f;
         venusOrbitAngle -= 0.013f; // Tốc độ quay của Sao Kim
+        marsOrbitAngle += 0.005f; // Tốc độ quay của Sao Hỏa
+        satureOrbitAngle += 0.003f; // Tốc độ quay của Sao Thổ
     }
 
     private void drawEarth(GL2 gl) {
@@ -219,7 +236,7 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
     private void drawVenus(GL2 gl) {
 
 
-        //        // Vẽ quỹ đạo Sao Kim (ellipse)
+        // Vẽ quỹ đạo Sao Kim (ellipse)
         gl.glDisable(GL2.GL_LIGHTING); // không bị ảnh hưởng bởi ánh sáng
         gl.glEnable(GL2.GL_LINE_STIPPLE);
         gl.glColor3f(1f, 1f, 1f);
@@ -259,6 +276,111 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
         gl.glPopMatrix();
     }
 
+    // Vẽ sao Hỏa
+    private void drawMars(GL2 gl) {
+        float radius =15f; // Bán kính quỹ đạo Sao Hỏa
+
+        // Vẽ quỹ đạo Sao Hỏa
+        gl.glDisable(GL2.GL_LIGHTING); // không bị ảnh hưởng bởi ánh sáng
+        gl.glEnable(GL2.GL_LINE_STIPPLE);
+        gl.glColor3f(1f, 1f, 1f);
+        gl.glLineStipple(1, (short) 0xF000);
+        gl.glLineWidth(1.0f);
+        gl.glRotatef(1.85f, 1f, 0f, 0f); // nghiêng 10° quanh trục X
+        gl.glBegin(GL.GL_LINE_LOOP);
+        for (int i = 0; i < numSegments; i++) {
+            float angle = (float) (2.0 * Math.PI * i / numSegments);
+            float x = radius * (float) Math.cos(angle); // Bán kính quỹ đạo Sao Hỏa
+            float y = 0.0f; // Quỹ đạo trên mặt phẳng XZ
+            float z = radius * (float) Math.sin(angle);
+            gl.glVertex3f(x, y, z);
+        }
+        gl.glEnd();
+        gl.glDisable(GL2.GL_LINE_STIPPLE);
+        gl.glEnable(GL2.GL_LIGHTING); // bật lại ánh sáng
+
+
+        // Vẽ Sao Hỏa
+        gl.glPushMatrix();
+        // Quay quanh Mặt Trời
+        gl.glRotatef(marsOrbitAngle * 1.88f, 0, 1, 0); // Mặt Trời quay quanh Mặt Trời
+        gl.glTranslatef(radius, 0, 0); // Khoảng cách từ Mặt Trời đến Sao Hỏa
+        gl.glRotatef(-earthRotation* 0.5f, 0, 1, 0); // Tốc độ quay của Sao Hỏa
+        gl.glRotatef(90 , 1, 0.5f, 0);
+        drawTexturedSphere(gl, marsTexture, 2f, 30, 30);
+
+
+        // Quay quanh trục của Sao Hỏa
+
+        gl.glPopMatrix();
+    }
+    private void drawSature(GL2 gl){
+        float radius = 50f; // Bán kính quỹ đạo Sao Thổ
+        float saturnRadius = 2f; // Bán kính Sao Thổ
+        // Vẽ quỹ đạo Sao Thổ
+        gl.glDisable(GL2.GL_LIGHTING); // không bị ảnh hưởng bởi ánh sáng
+        gl.glEnable(GL2.GL_LINE_STIPPLE);
+        gl.glColor3f(1f, 1f, 1f);
+        gl.glLineStipple(1, (short) 0xF000);
+        gl.glLineWidth(1.0f);
+        gl.glRotatef(26.73f, 1f, 0f, 0f); // nghiêng 26.73° quanh trục X
+        gl.glBegin(GL.GL_LINE_LOOP);
+        for (int i = 0; i < numSegments; i++) {
+            float angle = (float) (2.0 * Math.PI * i / numSegments);
+            float x = radius * (float) Math.cos(angle); // Bán kính quỹ đạo Sao Thổ
+            float y = 0.0f; // Quỹ đạo trên mặt phẳng XZ
+            float z = radius * (float) Math.sin(angle);
+            gl.glVertex3f(x, y, z);
+        }
+        gl.glEnd();
+        gl.glDisable(GL2.GL_LINE_STIPPLE);
+        gl.glEnable(GL2.GL_LIGHTING); // bật lại ánh sáng
+
+        // Vẽ Sao Thổ
+        gl.glPushMatrix();
+        // Quay quanh Mặt Trời
+        gl.glRotatef(satureOrbitAngle * 0.34f, 0, 1, 0); // Mặt Trời quay quanh Mặt Trời
+        gl.glTranslatef(radius, 0, 0); // Khoảng cách từ Mặt Trời đến Sao Thổ
+        gl.glRotatef(-earthRotation * 0.5f, 0, 1, 0); // Tốc độ quay của Sao Thổ
+        gl.glRotatef(90, 1, 0.5f, 0);
+        drawTexturedSphere(gl, saturnTexture, saturnRadius, 30, 30);
+        // vành đai sao thổ
+        drawSaturnRing(gl); // Vẽ vành đai Sao Thổ
+
+        gl.glPopMatrix();
+
+    }
+    private float[][] saturnRingPoints;
+
+
+    private void generateSaturnRing(float saturnRadius, int numPoints) {
+        saturnRingPoints = new float[numPoints][3];
+
+        float innerRadius = saturnRadius + 1.0f;
+        float outerRadius = saturnRadius + 3.0f;
+
+        for (int i = 0; i < numPoints; i++) {
+            double angle = Math.random() * 2.0 * Math.PI;
+            double r = innerRadius + Math.random() * (outerRadius - innerRadius);
+
+            saturnRingPoints[i][0] = (float) (r * Math.cos(angle)); // X
+            saturnRingPoints[i][1] = 0.0f;                          // Y
+            saturnRingPoints[i][2] = (float) (r * Math.sin(angle)); // Z
+
+        }
+    }
+    private void drawSaturnRing(GL2 gl) {
+//        gl.glDisable(GL2.GL_LIGHTING);
+        gl.glPointSize(2.0f);
+        gl.glRotatef(-90, 1, 0, 0); // Quay vành đai sao thổ nằm ngang
+        gl.glBegin(GL.GL_POINTS);
+        for (int i = 0; i < saturnRingPoints.length; i++) {
+            gl.glVertex3fv(saturnRingPoints[i], 0);
+        }
+        gl.glEnd();
+
+//        gl.glEnable(GL2.GL_LIGHTING);
+    }
     private void drawMoon(GL2 gl) {
         gl.glPushMatrix();
         // Quay quanh Trái Đất
