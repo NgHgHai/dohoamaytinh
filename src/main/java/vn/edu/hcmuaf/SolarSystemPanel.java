@@ -87,9 +87,16 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
         gl.glLoadIdentity();
 
         glu.gluLookAt(0, 0, cameraDistance, 0, 0, 0, 0, 1, 0);
+//        setCameraOrbitSaturn(gl, glu);
+//        float[] arr = getSaturnWorldPosition(gl);
+//        System.out.println("Sao Thổ tọa độ thế giới: " + arr[0] + ", " + arr[1] + ", " + arr[2]);
+//        gl.glTranslatef(-arr[0], -arr[1], -arr[2]); // Dịch tâm sao Thổ về gốc
 
         gl.glRotatef(sceneRotX, 1, 0, 0);
         gl.glRotatef(sceneRotY, 0, 1, 0);
+
+//        gl.glTranslatef(arr[0], arr[1], arr[2]); // Dịch tâm sao Thổ về gốc
+
 
         // Vẽ các ngôi sao cố định
         drawFixedStars(gl);
@@ -350,6 +357,50 @@ public class SolarSystemPanel extends GLJPanel implements GLEventListener, Mouse
         gl.glPopMatrix();
 
     }
+
+    private float cameraAngle = 0;
+
+    private void setCameraOrbitSaturn(GL2 gl, GLU glu) {
+        // Lấy tọa độ tâm Sao Thổ (hàm này bạn cần có)
+        float[] saturnPos = getSaturnWorldPosition(gl);
+
+        float camX = saturnPos[0] + (float) Math.cos(Math.toRadians(cameraAngle)) * cameraDistance;
+        float camZ = saturnPos[2] + (float) Math.sin(Math.toRadians(cameraAngle)) * cameraDistance;
+        float camY = saturnPos[1] + 3.0f;
+
+        glu.gluLookAt(
+                camX, camY, camZ,
+                saturnPos[0], saturnPos[1], saturnPos[2],
+                0.0f, 1.0f, 0.0f
+        );
+
+        cameraAngle += 0.01f; // điều chỉnh tốc độ quay
+    }
+
+    private float[] getSaturnWorldPosition(GL2 gl) {
+        // Lưu lại ma trận hiện tại
+        gl.glPushMatrix();
+
+        // Giống hệt các phép biến đổi khi vẽ Sao Thổ
+        gl.glRotatef(26.73f, 1f, 0f, 0f); // nghiêng quỹ đạo
+        gl.glRotatef(satureOrbitAngle * 0.34f, 0, 1, 0); // quay quanh Mặt Trời
+        gl.glTranslatef(50f, 0, 0); // bán kính quỹ đạo
+
+        // Lấy ma trận MODELVIEW
+        float[] modelview = new float[16];
+        gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+
+        // Giải nén vị trí từ ma trận (cột 4 của ma trận)
+        float worldX = modelview[12];
+        float worldY = modelview[13];
+        float worldZ = modelview[14];
+
+        // Khôi phục ma trận ban đầu
+        gl.glPopMatrix();
+
+        return new float[]{worldX, worldY, worldZ};
+    }
+
     private float[][] saturnRingPoints;
 
 
